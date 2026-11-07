@@ -1,0 +1,73 @@
+name: Backend QA
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    name: Safe regressions (including fork PRs)
+    runs-on: ubuntu-latest
+    env:
+      QH_REPORT_ROOT: reports/regression-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pytest tests/unit
+      - name: Record coverage scope
+        run: echo 'Mock regressions executed. QA Shop integration runs only on trusted events with configured secrets.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: safe-regression-results
+          path: reports/regression-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+  backend:
+    name: Full QA Shop integration (trusted events)
+    needs: regression
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      QH_REPORT_ROOT: reports/ci-${{ github.run_id }}-${{ github.run_attempt }}
+      QH_BASE_URL: http://localhost:4000
+      QH_DATABASE_URL: ${{ secrets.QH_DATABASE_URL }}
+      QH_DATABASE_DSN: ${{ secrets.QH_DATABASE_DSN }}
+      QH_JWT_SECRET: ${{ secrets.QH_JWT_SECRET }}
+      QH_ALLOW_WRITES: '1'
+      QH_CREATE_SANDBOX: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Require runner configuration
+        shell: bash
+        run: |
+          test -n "$QH_DATABASE_URL" && test -n "$QH_DATABASE_DSN" && test -n "$QH_JWT_SECRET" || { echo 'Configure required repository secrets; see README'; exit 1; }
+      - run: docker compose up -d --wait --wait-timeout 120
+      - name: Wait for application readiness
+        shell: bash
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:4000/health | python -c 'import json,sys; d=json.load(sys.stdin); assert d["status"]=="ok" and d["database"]=="up"'; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - run: python -m pytest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-qa-results
+          path: reports/ci-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Stop runner services
+        if: always()
+        run: docker compose stop

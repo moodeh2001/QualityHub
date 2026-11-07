@@ -1,0 +1,68 @@
+# QA Shop — REPO İSTEMEYEN kurulum
+#
+# Bu dosya, yanındaki `docker-compose.yml`in aksine hiçbir yerel dosyaya
+# İHTİYAÇ DUYMAZ: imajlar hazır yayınlanmıştır, şema ve tohum veri veritabanı
+# imajının içindedir. Yani bu tek dosya (ya da aşağıdaki `docker run` yolu)
+# yeni bir makinede yığını ayağa kaldırmaya yeter.
+#
+#   # Windows PowerShell:
+#   curl.exe -o docker-compose.yml https://raw.githubusercontent.com/hasankocaman/automationexercise/main/qa-shop/docker-compose.hub.yml
+#   docker compose up -d
+#
+#   # macOS / Linux:
+#   curl -o docker-compose.yml https://raw.githubusercontent.com/hasankocaman/automationexercise/main/qa-shop/docker-compose.hub.yml
+#   docker compose up -d
+#
+# TEK BİR DOSYA BİLE İNDİRMEK İSTEMİYORSAN, README'deki "Dosyasız kurulum"
+# bölümündeki üç `docker run` komutunu kullan — sonuç aynıdır.
+#
+# ─── Deponun compose dosyasından farkları ───────────────────────────────────
+#   • `build:` YOK          → imajlar GHCR'dan çekilir, yerel kaynak gerekmez
+#   • bind mount YOK        → schema.sql/seed.sql imajın içinde
+#   • sürüm SABİTLENEBİLİR  → QA_SHOP_TAG ile (varsayılan: latest)
+#
+# Sürüm sabitleme (tekrar üretilebilirlik için önerilir):
+#   QA_SHOP_TAG=1.0.0 docker compose up -d          # macOS/Linux
+#   $env:QA_SHOP_TAG="1.0.0"; docker compose up -d  # PowerShell
+
+services:
+  db:
+    image: ghcr.io/hasankocaman/qa-shop-db@sha256:8f8882a6c06a1522b03fe25750efc905085fffe5465ae06325e6c3c3f72bd56e
+    # Konteyner adları depodaki compose ile AYNI tutuldu — README'deki
+    # `docker exec -it qashop-db psql ...` komutları iki yolda da çalışsın.
+    container_name: qashop-db
+    ports:
+      # Host'ta 5433 → içeride 5432. Makinede zaten bir PostgreSQL varsa
+      # 5432 çakışır; 5433 bu tuzağı önler. DBeaver'a 5433 yazılacak.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - qashop-pgdata:/var/lib/postgresql/data
+    # POSTGRES_USER/PASSWORD/DB ve initdb argümanları İMAJA GÖMÜLÜ — burada
+    # tekrar edilmiyor. İki yerde tutulsaydı biri değişince sessizce ayrışırdı.
+    # Sağlık kontrolü de imajın içinde (TCP'ye bakar, tohumlama bitmeden
+    # yeşile dönmez).
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/hasankocaman/qa-shop-api@sha256:db18e3497b3f463d32dd6029f7ab28ecaba87d5302cca2bccfbb3a82dfb5b862
+    container_name: qashop-api
+    environment:
+      # Host değil SERVİS ADI (db) ve İÇERİDEKİ port (5432) — konteynerler
+      # kendi ağlarında birbirini isimle bulur.
+      DATABASE_URL: ${QH_DATABASE_URL:?Set QH_DATABASE_URL privately for the db service}
+      PORT: 4000
+      JWT_SECRET: ${QH_JWT_SECRET:?Set a private local JWT signing secret}
+      TOKEN_TTL_SECONDS: 3600
+      SANDBOX_TTL_DAYS: 7
+    ports:
+      - "127.0.0.1:4000:4000"
+    depends_on:
+      db:
+        # Tohumlama bitene kadar bekler. Bu satır olmasa API açılışta
+        # veritabanını bulamaz; ölmez ama `/health` bir süre 503 döner ve
+        # ilk isteği atan kişi bunu kendi hatası sanır.
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  qashop-pgdata:

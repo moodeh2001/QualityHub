@@ -1,0 +1,1367 @@
+{
+  "info": {
+    "_postman_id": "73c58a92-0a7e-4f3b-99a9-16f1be08f69e",
+    "name": "QualityHub API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Existing QualityHub collection. Setup: postman/README.md in the QualityHub repository. base_url is the server root. Cart writes require a confirmed private local sandbox."
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET Health — API and Database",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"API and database are healthy\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.status).to.eql(\"ok\");\r\n    pm.expect(body.database).to.eql(\"up\");\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "db2cb7c1-a2d7-40b5-ae14-24779f493910",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-30T17:20:09.000Z",
+          "updatedAt": "2026-11-06T17:25:28.000Z",
+          "uid": "58176932-db2cb7c1-a2d7-40b5-ae14-24779f493910"
+        }
+      ],
+      "id": "e3b7762b-1bd9-46bf-a945-a03afb5e1296",
+      "createdAt": "2026-10-30T17:19:47.000Z",
+      "updatedAt": "2026-11-06T17:19:36.000Z",
+      "uid": "58176932-e3b7762b-1bd9-46bf-a945-a03afb5e1296"
+    },
+    {
+      "name": "Product",
+      "item": [
+        {
+          "name": "Get Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Products endpoint returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"First page returns two products\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.page).to.eql(1);\r\n    pm.expect(body.size).to.eql(2);\r\n    pm.expect(body.items).to.be.an(\"array\");\r\n    pm.expect(body.items).to.have.lengthOf(2);\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "0e4cc5cf-8bb6-4f44-a1ef-8f62080bdfae",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products?page=1&size=2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T14:27:11.000Z",
+          "updatedAt": "2026-11-05T15:56:26.000Z",
+          "uid": "58176932-0e4cc5cf-8bb6-4f44-a1ef-8f62080bdfae"
+        },
+        {
+          "name": "Get Product By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Product details returns HTTP 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Returned product ID is 601\", function () {\n    const body = pm.response.json();\n\n    pm.expect(body.product.id).to.eql(Number(pm.variables.get(\"product_id\")));\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "dd15a153-2b1d-4c1e-84fc-62141b783a27",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/{{product_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{product_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T14:35:35.000Z",
+          "updatedAt": "2026-11-06T17:30:24.000Z",
+          "uid": "58176932-dd15a153-2b1d-4c1e-84fc-62141b783a27"
+        },
+        {
+          "name": "Get Nonexistent product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Nonexistent product returns HTTP 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\npm.test(\"Error code is NOT_FOUND\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.error.code).to.eql(\"NOT_FOUND\");\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "949bd036-51f3-4723-937a-e428b8f79e2c",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "999999"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T14:39:15.000Z",
+          "updatedAt": "2026-11-05T15:57:29.000Z",
+          "uid": "58176932-949bd036-51f3-4723-937a-e428b8f79e2c"
+        },
+        {
+          "name": "Get Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Categories endpoint returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Categories list is not empty\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.categories).to.be.an(\"array\");\r\n    pm.expect(body.categories.length).to.be.above(0);\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "24c90682-02cc-4048-bf57-24553c9dc3cc",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T14:42:34.000Z",
+          "updatedAt": "2026-10-31T15:15:36.000Z",
+          "uid": "58176932-24c90682-02cc-4048-bf57-24553c9dc3cc"
+        },
+        {
+          "name": "Get Jeans Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Category products returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n\r\n\r\npm.test(\"Returned category is Jeans\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.category.id).to.eql(5);\r\n    pm.expect(body.category.slug).to.eql(\"jeans\");\r\n});",
+                  "\npm.test(\"Category products have a valid page structure\", () => {\n const b=pm.response.json(); pm.expect(b.items).to.be.an(\"array\"); pm.expect(b.total).to.be.a(\"number\").and.at.least(0);\n b.items.forEach(p=>{pm.expect(p.id).to.be.a(\"number\").and.above(0);pm.expect(p.price).to.be.a(\"number\").and.at.least(0);});\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "861f9b01-9abc-49a2-bdd1-901fe3fcbb3e",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/5/products?page=1&size=2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                "5",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T14:44:00.000Z",
+          "updatedAt": "2026-10-31T14:56:05.000Z",
+          "uid": "58176932-861f9b01-9abc-49a2-bdd1-901fe3fcbb3e"
+        },
+        {
+          "name": "GET Nonexistent Category Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Nonexistent category returns HTTP 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "9b8fe82d-9826-4fc3-90aa-ac167b075d24",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/999999/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                "999999",
+                "products"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T14:49:12.000Z",
+          "updatedAt": "2026-10-31T14:56:01.000Z",
+          "uid": "58176932-9b8fe82d-9826-4fc3-90aa-ac167b075d24"
+        },
+        {
+          "name": "GET Clothing Category Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Clothing category returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Returned category is Clothing\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.category.id).to.eql(1);\r\n    pm.expect(body.category.slug).to.eql(\"clothing\");\r\n});",
+                  "\npm.test(\"Category products have a valid page structure\", () => {\n const b=pm.response.json(); pm.expect(b.items).to.be.an(\"array\"); pm.expect(b.total).to.be.a(\"number\").and.at.least(0);\n b.items.forEach(p=>{pm.expect(p.id).to.be.a(\"number\").and.above(0);pm.expect(p.price).to.be.a(\"number\").and.at.least(0);});\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "de9051bc-2247-4b38-ba6b-36aa95010c2d",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/1/products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                "1",
+                "products"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T14:50:43.000Z",
+          "updatedAt": "2026-10-31T14:55:58.000Z",
+          "uid": "58176932-de9051bc-2247-4b38-ba6b-36aa95010c2d"
+        },
+        {
+          "name": "GET Product Variants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "(function () {",
+                  "\r\nconst data = pm.response.json();\r\n\r\n// Get product ID dynamically from request URL\r\nconst requestUrl = pm.variables.replaceIn(\r\n    pm.request.url.toString()\r\n);\r\n\r\nconst match = requestUrl.match(\r\n    /\\/products\\/(\\d+)\\/variants\\/?(?:\\?|$)/\r\n);\r\n\r\nconst requestedProductId = match\r\n    ? Number(match[1])\r\n    : null;\r\n\r\n// Test 1: Status code\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Test 2: Correct product ID\r\npm.test(\"Response matches requested product ID\", function () {\r\n    pm.expect(requestedProductId).to.not.be.null;\r\n    pm.expect(data.productId).to.eql(requestedProductId);\r\n});\r\n\r\n// Test 3: Variants count\r\npm.test(\"Variants total matches array length\", function () {\r\n    pm.expect(data.variants).to.be.an(\"array\");\r\n    pm.expect(data.total).to.eql(data.variants.length);\r\n});\r\n\r\n// Test 4: Variant fields\r\npm.test(\"All variants contain valid data\", function () {\r\n    pm.expect(data.variants).to.be.an(\"array\");\r\n\r\n    data.variants.forEach(function (variant) {\r\n        pm.expect(variant.id).to.be.a(\"number\");\r\n        pm.expect(variant.sku).to.be.a(\"string\").and.not.empty;\r\n        pm.expect(variant.price).to.be.a(\"number\");\r\n        pm.expect(variant.stock_qty).to.be.a(\"number\");\r\n        pm.expect(variant.reserved_qty).to.be.a(\"number\");\r\n        pm.expect(variant.available).to.be.a(\"number\");\r\n    });\r\n});\r\n\r\n// Test 5: Inventory consistency\r\npm.test(\"Available stock matches inventory\", function () {\r\n    data.variants.forEach(function (variant) {\r\n        pm.expect(variant.stock_qty).to.be.at.least(0);\r\n        pm.expect(variant.reserved_qty).to.be.at.least(0);\r\n        pm.expect(variant.available).to.eql(\r\n            variant.stock_qty - variant.reserved_qty\r\n        );\r\n    });\r\n});\r\n",
+                  "})();"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "88a66623-ca0e-4da0-8318-439cb0e158a4",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/{{product_id}}/variants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{product_id}}",
+                "variants"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-11-01T17:07:01.000Z",
+          "updatedAt": "2026-11-07T17:03:24.000Z",
+          "uid": "58176932-88a66623-ca0e-4da0-8318-439cb0e158a4"
+        }
+      ],
+      "id": "79cd792d-5460-4509-896c-454f5fc493c8",
+      "createdAt": "2026-10-31T14:26:46.000Z",
+      "updatedAt": "2026-11-01T17:07:01.000Z",
+      "uid": "58176932-79cd792d-5460-4509-896c-454f5fc493c8"
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST Login – Invalid Email Format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"invalid email returns HTTP 401\", function () {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Invalid email login returns UNAUTHORIZED\", function () {\r\n    const json = pm.response.json();\r\n    pm.expect(json.error.code).to.eql(\"UNAUTHORIZED\");\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"token\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "c50f70d7-49fd-4978-8578-3ea135bd663e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invalid-email\",\n  \"password\": \"{{login_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-11-01T16:25:02.000Z",
+          "updatedAt": "2026-11-01T16:32:22.000Z",
+          "uid": "58176932-c50f70d7-49fd-4978-8578-3ea135bd663e"
+        },
+        {
+          "name": "POST Login — Wrong Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {\r\n    pm.response.to.have.status(401);\r\n});\r\n\r\npm.test(\"Error code is UNAUTHORIZED\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.error.code).to.eql(\"UNAUTHORIZED\");\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"token\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "248d58ef-0168-4cd8-92c6-3a7daf4e79ec",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{login_email}}\",\n  \"password\": \"{{wrong_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T15:51:18.000Z",
+          "updatedAt": "2026-10-31T15:58:26.000Z",
+          "uid": "58176932-248d58ef-0168-4cd8-92c6-3a7daf4e79ec"
+        },
+        {
+          "name": "POST Login — Empty Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Empty Password returns HTTP 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Error identifies missing password\", function () {\r\n    const json = pm.response.json();\r\n    pm.expect(json.error.details.missing).to.include(\"password\");\r\n    pm.expect(json.error.code).to.equal(\"BAD_REQUEST\");\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"token\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "5fcd16f8-12df-49ae-886f-7249e3b1b0e0",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{login_email}}\",\n  \"password\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-11-01T16:11:53.000Z",
+          "updatedAt": "2026-11-01T16:15:37.000Z",
+          "uid": "58176932-5fcd16f8-12df-49ae-886f-7249e3b1b0e0"
+        },
+        {
+          "name": "POST Login — Empty Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Empty Email returns HTTP 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Error identifies Empty Email\", function () {\r\n    const json = pm.response.json();\r\n    pm.expect(json.error.code).to.equal(\"BAD_REQUEST\");\r\n    pm.expect(json.error.details.missing).to.include(\"email\");\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"token\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "cc022fa8-d177-4bbc-81ac-4894fabf9061",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"{{login_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-11-01T16:16:11.000Z",
+          "updatedAt": "2026-11-01T16:32:25.000Z",
+          "uid": "58176932-cc022fa8-d177-4bbc-81ac-4894fabf9061"
+        },
+        {
+          "name": "POST Login — Missing Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Missing Password returns HTTP 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Error identifies the missing Password\", function () { \r\n    const body = pm.response.json();\r\n    pm.expect(body.error.details.missing).to.include(\"password\");\r\n    pm.expect(body.error.code).to.eql(\"BAD_REQUEST\");\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"token\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "447f88a4-0bbb-4691-b802-9c6e322eee2b",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{login_email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T15:58:40.000Z",
+          "updatedAt": "2026-10-31T16:05:03.000Z",
+          "uid": "58176932-447f88a4-0bbb-4691-b802-9c6e322eee2b"
+        },
+        {
+          "name": "POST Login — Missing Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Missing Email returns HTTP 400\", function () {  \n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error identifies missing email\", function () {\n    const json = pm.response.json();\n    pm.expect(json.error.details.missing).to.include(\"email\");\n    pm.expect(json.error.code).to.equal(\"BAD_REQUEST\");\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"token\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "f35ceba8-ab56-42e9-aac7-726e031c187d",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{login_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-11-01T16:04:16.000Z",
+          "updatedAt": "2026-11-01T16:16:50.000Z",
+          "uid": "58176932-f35ceba8-ab56-42e9-aac7-726e031c187d"
+        },
+        {
+          "name": "POST Login — Valid Credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Valid login returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Login returns a token and the correct user\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.token).to.be.a(\"string\").and.not.empty;\r\n    pm.expect(body.tokenType).to.eql(\"Bearer\");\r\n    pm.expect(body.user.email).to.eql(pm.variables.get(\"login_email\"));\r\n});\r\n\r\nif (pm.response.code === 200) {\r\n    const body = pm.response.json();\r\n    if (typeof body.token === \"string\" && body.token.trim()) pm.environment.set(\"token\", body.token);\r\n}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"token\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "39a5bf31-d146-49a0-b0d4-111a7568dfa6",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{login_email}}\",\n  \"password\": \"{{login_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T15:30:53.000Z",
+          "updatedAt": "2026-10-31T15:55:15.000Z",
+          "uid": "58176932-39a5bf31-d146-49a0-b0d4-111a7568dfa6"
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Current user returns HTTP 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Current user is the active demo user\", function () {\r\n    const body = pm.response.json();\r\n\r\n    pm.expect(body.user.email).to.eql(pm.variables.get(\"login_email\"));\r\n    pm.expect(body.user.is_active).to.eql(true);\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "58cfd178-4cf2-4453-a959-2039bbdd465e",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T15:41:04.000Z",
+          "updatedAt": "2026-10-31T15:48:38.000Z",
+          "uid": "58176932-58cfd178-4cf2-4453-a959-2039bbdd465e"
+        },
+        {
+          "name": "GET Current User — No Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Current user without token returns HTTP 401\", function () {\r\n    pm.response.to.have.status(401);\r\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "5b74ea58-adf7-4707-bede-d2df41077019",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-10-31T15:49:07.000Z",
+          "updatedAt": "2026-11-06T17:57:42.000Z",
+          "uid": "58176932-5b74ea58-adf7-4707-bede-d2df41077019"
+        }
+      ],
+      "id": "5e222bb2-9aab-4bd3-92a4-b53d85a69def",
+      "createdAt": "2026-10-31T15:30:46.000Z",
+      "updatedAt": "2026-11-01T16:25:02.000Z",
+      "uid": "58176932-5e222bb2-9aab-4bd3-92a4-b53d85a69def"
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "POST Create Guest Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Guest Cart returns HTTP 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Guest Cart is created correctly\", function () {\r\n    const json = pm.response.json();\r\n    pm.expect(json.cart.id).to.be.a(\"number\");\r\n    pm.expect(json.cart.user_id).to.be.null;\r\n    pm.expect(json.cart.guest_token).to.be.a(\"string\").and.not.empty;\r\n    pm.expect(json.cart.status).to.equal(\"open\");\r\n    pm.expect(json.cart.created_at).to.be.a(\"string\");\r\n});\r\n\r\n\r\nif (pm.response.code === 201) {\r\n    const json = pm.response.json();\r\n\r\n    if (Number.isInteger(json.cart.id) && json.cart.id > 0) pm.environment.set(\"cart_id\", json.cart.id);\r\n}\r\n\r\n"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"cart_id\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}",
+                  "pm.sendRequest({url: pm.variables.get(\"base_url\") + \"/api/v1/products?page=1&size=1\", method:\"GET\", header:{\"X-Sandbox-Key\":pm.variables.get(\"sandbox_key\")}}, (err,res) => {\n if (err || res.code !== 200 || res.headers.get(\"X-Sandbox-Mode\") !== \"private\") stop(\"Cart writes require a confirmed private local QA sandbox.\");\n});"
+                ]
+              }
+            }
+          ],
+          "id": "1a0cfc01-7d8c-41ba-b54a-8a2cf559a9f8",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/carts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "carts"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-11-01T16:39:34.000Z",
+          "updatedAt": "2026-11-06T17:56:41.000Z",
+          "uid": "58176932-1a0cfc01-7d8c-41ba-b54a-8a2cf559a9f8"
+        },
+        {
+          "name": "Get Guest Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get Guest Cart returns HTTP 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Guest Cart details are correct\", function () {\n    const json = pm.response.json();\n    pm.expect(json.cart.id).to.be.a('number');\n    pm.expect(json.cart.userId).to.eql(null);\n    pm.expect(json.cart.status).to.eql(\"open\");\n    pm.expect(json.items).to.be.an('array');\n    pm.expect(json.itemCount).to.be.a('number');\n});",
+                  "\npm.test(\"Retrieved cart matches requested cart\", () => pm.expect(pm.response.json().cart.id).to.eql(Number(pm.variables.get(\"cart_id\"))));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "404c0d58-792a-4a48-8bec-22e81fe26f73",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Sandbox-key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/carts/{{cart_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "carts",
+                "{{cart_id}}"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-11-01T16:50:46.000Z",
+          "updatedAt": "2026-11-06T17:56:36.000Z",
+          "uid": "58176932-404c0d58-792a-4a48-8bec-22e81fe26f73"
+        },
+        {
+          "name": "POST Add Product to Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const requestBody = JSON.parse(\n    pm.variables.replaceIn(pm.request.body.raw)\n);\n\n// Test 1: HTTP Status\npm.test(\"Status code is 201\", function () {\n    pm.response.to.have.status(201);\n});\n\n// Test 2: Response time\npm.test(\"Response time is within acceptable limits\", function () {\n    pm.expect(pm.response.responseTime).to.be.below(500);\n});\n\n// Test 3: Response structure\npm.test(\"Response has valid JSON structure\", function () {\n    pm.response.to.be.json;\n\n    const json = pm.response.json();\n\n    pm.expect(json).to.have.property(\"cart\");\n    pm.expect(json).to.have.property(\"items\");\n    pm.expect(json.items).to.be.an(\"array\");\n});\n\n// Test 4: Correct variant and quantity\npm.test(\"Added variant has correct quantity\", function () {\n    pm.response.to.have.status(201);\n\n    const json = pm.response.json();\n\n    const item = json.items.find(\n        item => item.variant_id === Number(requestBody.variantId)\n    );\n\n    pm.expect(item, \"Requested variant should exist in cart\").to.exist;\n\n    pm.expect(item.product_id).to.eql(Number(pm.variables.get(\"cart_product_id\")));\n    // The API might be incrementing the quantity if the item already exists.\n    // We check that the quantity is at least the requested amount.\n    pm.expect(item.qty).to.eql(Number(pm.variables.get(\"expected_qty\")));\n});\n\n// Test 5: Validate line total\npm.test(\"Line total is calculated correctly\", function () {\n    pm.response.to.have.status(201);\n    const json = pm.response.json();\n\n    const item = json.items.find(\n        item => item.variant_id === Number(requestBody.variantId)\n    );\n\n    pm.expect(item).to.exist;\n\n    const calculatedTotal = Number(\n        (item.qty * item.unit_price).toFixed(2)\n    );\n\n    pm.expect(item.line_total).to.eql(calculatedTotal);\n});",
+                  "pm.test(\"Cart totals reconcile\", function () {\n pm.response.to.have.status(201);\n const b=pm.response.json(), cents=v=>Math.round(Number(v)*100);\n pm.expect(b.items).to.be.an(\"array\");\n pm.expect(b.totals).to.be.an(\"object\");\n let sum=0,qty=0;\n b.items.forEach(i=>{pm.expect(cents(i.line_total)).to.eql(cents(i.unit_price)*i.qty);sum+=cents(i.line_total);qty+=i.qty;});\n pm.expect(cents(b.totals.subtotal)).to.eql(sum);\n pm.expect(b.itemCount).to.eql(qty);\n pm.expect(cents(b.totals.shipping_total)).to.eql(sum>=50000?0:2990);\n pm.expect(cents(b.totals.grand_total)).to.eql(sum-cents(b.totals.discount_total)+cents(b.totals.shipping_total));\n});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"expected_qty\", \"\");",
+                  "function stop(message) { pm.execution.skipRequest(); throw new Error(message); }",
+                  "if (pm.variables.get(\"base_url\") !== \"http://localhost:4000\") stop(\"Set base_url to http://localhost:4000 (server root).\");",
+                  "const unresolved = pm.variables.replaceIn(JSON.stringify(pm.request.toJSON())).match(/\\{\\{[^}]+\\}\\}/g);",
+                  "if (unresolved) stop(\"Unresolved request variables: \" + [...new Set(unresolved)].join(\", \"));",
+                  "for (const h of pm.request.headers.all()) {",
+                  " if (h.key.toLowerCase() === \"x-sandbox-key\" && !String(pm.variables.get(\"sandbox_key\") || \"\").trim()) stop(\"Configure sandbox_key privately.\");",
+                  "}",
+                  "pm.sendRequest({url:pm.variables.replaceIn(\"{{base_url}}/api/v1/carts/{{cart_id}}\"),method:\"GET\",header:{\"X-Sandbox-Key\":pm.variables.get(\"sandbox_key\")}}, (err,res) => {\n if(err || res.code!==200 || res.headers.get(\"X-Sandbox-Mode\")!==\"private\") stop(\"Cannot verify private local cart before write.\");\n const b=JSON.parse(pm.variables.replaceIn(pm.request.body.raw)),data=res.json();\n if(!Array.isArray(data.items) || !Number.isInteger(b.qty) || b.qty<1) stop(\"Positive add needs integer qty and valid cart.\");\n const old=data.items.find(i=>i.variant_id===Number(b.variantId));\n pm.variables.set(\"expected_qty\",(old?Number(old.qty):0)+b.qty);\n});"
+                ]
+              }
+            }
+          ],
+          "id": "f6c231a9-224d-4f35-a067-f3ae406abd76",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Sandbox-Key",
+                "value": "{{sandbox_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variantId\": {{cart_variant_id}},\n  \"qty\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/carts/{{cart_id}}/items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "carts",
+                "{{cart_id}}",
+                "items"
+              ]
+            }
+          },
+          "response": [],
+          "createdAt": "2026-11-01T16:57:08.000Z",
+          "updatedAt": "2026-11-07T17:27:27.000Z",
+          "uid": "58176932-f6c231a9-224d-4f35-a067-f3ae406abd76"
+        }
+      ],
+      "id": "afe56c60-8b6a-488c-b7d9-6b5c6d47ae3c",
+      "createdAt": "2026-11-01T16:36:05.000Z",
+      "updatedAt": "2026-11-01T16:57:08.000Z",
+      "uid": "58176932-afe56c60-8b6a-488c-b7d9-6b5c6d47ae3c"
+    }
+  ],
+  "variable": [
+    {
+      "key": "product_id",
+      "value": "601",
+      "type": "string"
+    },
+    {
+      "key": "cart_product_id",
+      "value": "602",
+      "type": "string"
+    },
+    {
+      "key": "cart_variant_id",
+      "value": "1805",
+      "type": "string"
+    }
+  ]
+}
