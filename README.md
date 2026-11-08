@@ -8,9 +8,9 @@ QualityHub tests the existing LearnQA QA Shop API and PostgreSQL database. The c
 
 The final full run executed **58 pytest cases: 58 passed, 0 failures, 0 errors, 0 skipped**. This consists of 32 API cases, 11 database/catalog cases, 3 API/database integration cases and 12 Python regression/configuration cases.
 
-Evidence: [HTML report](reports/final-python/pytest-xpmyveh2/pytest.html), [JUnit](reports/final-python/pytest-xpmyveh2/junit.xml), [run manifest](reports/final-python/pytest-xpmyveh2/run.json). These are real, ignored local artifacts and will not be included in GitHub source. GitHub Actions publishes current-run artifacts after an actual workflow execution.
+See the [project report](docs/PROJECT_REPORT.md) for evidence paths and verification limits. GitHub Actions publishes test artifacts for workflow runs.
 
-Both clean source snapshots started without reports/. Default reporting and custom QH_REPORT_ROOT runs each passed all 12 regressions. The custom run created no project-local reports directory. See [project report](docs/PROJECT_REPORT.md) for exact evidence paths and limitations. The existing virtual environment supplied dependencies; this was not a clean machine installation.
+Both clean source snapshots started without a `reports/` directory. The default reporting run and the run with a custom `QH_REPORT_ROOT` each passed all 12 regressions using the existing virtual environment. The custom run wrote its reports outside the source snapshot.
 
 ## Scope and technologies
 
@@ -35,8 +35,6 @@ tools/verify_clean_source.py           isolated source-only regression verificat
 .github/workflows/backend-qa.yml       Python CI and current-run artifacts
 docs/                                 evidence, roadmap, scope and known limits
 ```
-
-Legacy empty pages/ and tests/ui/ placeholders are unused; they do not represent UI features.
 
 ## Setup
 
